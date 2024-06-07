@@ -4,10 +4,14 @@ import com.zerobyte.sharputil.data.tag.DataTagUtil;
 import com.zerobyte.sharputil.logging.SimpleLogger;
 
 import java.text.DecimalFormat;
+import java.util.Scanner;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 public class Main {
     private final static SimpleLogger LOGGER = new SimpleLogger("Main",System.getProperty("user.dir")+"\\logs");
+    static boolean stopping;
+    static int tickCount;
 
     static TestSaveData data = new TestSaveData(exceptionPackage -> {
         LOGGER.error(ExceptionUtil.getStackTrace(exceptionPackage.exception()));
@@ -47,5 +51,26 @@ public class Main {
         LOGGER.info("AAA");
         LOGGER.info(System.getProperty("user.dir"));
         System.out.println(TextUtil.PrintDirectory("F:\\sp\\SharpUtil\\Test"));
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (!stopping){
+                  loop();
+                }
+            }
+        },"loop");
+        thread.start();
+    }
+
+    private static void loop(){
+        tickCount++;
+        if(tickCount>=60){
+            tickCount = 0;
+        }
+        try {
+            TimeUnit.MICROSECONDS.sleep(16667);
+        } catch (InterruptedException e) {
+            LOGGER.error(ExceptionUtil.getStackTrace(e));
+        }
     }
 }

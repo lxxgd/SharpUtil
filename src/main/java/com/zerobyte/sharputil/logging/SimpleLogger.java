@@ -6,20 +6,51 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SimpleLogger {
     private final String name;
     private final String path;
     private final String fileName;
-    private final StringBuilder historyLog;
+    private final List<String> historyLog;
+    public int maxLogs = 10;
 
     public SimpleLogger(String name, String path) {
         this.name = name;
         this.path = path;
         this.fileName = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-M-d--HH-mm-ss"))+ ".log";
-        this.historyLog = new StringBuilder();
+        this.historyLog = new ArrayList<>();
+        File file = new File(path,fileName);
+
+        if(!file.exists()){
+            try {
+                new File(path).mkdirs();
+                file.createNewFile();
+            } catch (IOException e) {
+                System.out.println(ExceptionUtil.getStackTrace(e));
+            }
+        }
+
+        try {
+            List<Path> files = new ArrayList<>();
+            Files.walk(Path.of(path)).forEach(path1 -> {
+                if(!Files.isDirectory(path1)){
+                    files.add(path1);
+                }
+            });
+            for (int i = 0; i < files.size() - maxLogs; i++)
+            {
+                Files.delete(files.get(i));
+            }
+        }catch (IOException e)
+        {
+            System.out.println(ExceptionUtil.getStackTrace(e));
+        }
     }
 
     public String getName() {
@@ -59,7 +90,7 @@ public class SimpleLogger {
             System.out.println(ExceptionUtil.getStackTrace(e));
         }
         System.out.println(str);
-        historyLog.append(str).append("\n");
+        historyLog.add(str);
         return str;
     }
 
